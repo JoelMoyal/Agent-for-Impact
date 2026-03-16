@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    height: 100%;
+  }
+}
+
+/* Pulse animation for document highlights when referenced in chat */
+@keyframes pulse-highlight {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.animate-pulse-highlight {
+  animation: pulse-highlight 0.5s ease-in-out 4;
+}

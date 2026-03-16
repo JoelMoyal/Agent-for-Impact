@@ -1,0 +1,153 @@
+COMPREHENSIVE GENOMIC PROFILING REPORT
+======================================
+Patient ID: CGP-2024-00847
+Report Date: March 16, 2024
+Specimen Type: FFPE Tumor Tissue — Core Needle Biopsy
+Primary Diagnosis: Non-Small Cell Lung Carcinoma (NSCLC), Adenocarcinoma
+Tumor Purity: 65%
+Lab Accession: LAB-20240312-0847
+
+----------------------------------------------------------------------
+CLINICAL SUMMARY
+----------------------------------------------------------------------
+This comprehensive genomic profile was performed on tumor tissue from
+a 58-year-old female with stage IIIB non-small cell lung cancer,
+adenocarcinoma histology. The panel covers 324 cancer-relevant genes
+including full exonic sequencing, select introns, and RNA fusion
+analysis.
+
+----------------------------------------------------------------------
+GENOMIC FINDINGS — PATHOGENIC / LIKELY PATHOGENIC
+
+----------------------------------------------------------------------
+
+1. EGFR Exon 19 Deletion (p.E746_A750del)
+   Classification: Pathogenic
+   Allele Frequency: 42.3%
+   The EGFR exon 19 deletion is the most common sensitizing mutation
+   in NSCLC, present in approximately 45% of EGFR-mutant lung cancers.
+   This alteration renders the tumor highly sensitive to EGFR tyrosine
+   kinase inhibitors (TKIs) including osimertinib (Tagrisso), erlotinib,
+   and gefitinib. First-line osimertinib is strongly recommended based
+   on FLAURA trial data showing superior PFS (18.9 vs 10.2 months).
+
+2. TP53 p.R175H (c.524G>A)
+   Classification: Pathogenic
+   Allele Frequency: 38.7%
+   TP53 R175H is a well-characterized hotspot mutation resulting in loss
+   of tumor suppressor function. Co-occurrence with EGFR mutations is
+   common and may be associated with modest reduction in TKI response
+   duration. No direct therapeutic implications but prognostically relevant.
+
+3. PTEN p.R130* (c.388C>T) — Nonsense mutation
+   Classification: Pathogenic
+   Allele Frequency: 21.4%
+   Loss-of-function mutation in PTEN leading to PI3K/AKT pathway
+   activation. PTEN loss may contribute to resistance to EGFR-directed
+   therapies and has been associated with worse outcomes in EGFR-mutant
+   NSCLC. PI3K inhibitor combinations may be of interest in the
+   relapsed/refractory setting.
+
+----------------------------------------------------------------------
+GENOMIC FINDINGS — VARIANTS OF UNCERTAIN SIGNIFICANCE (VUS)
+----------------------------------------------------------------------
+
+4. ATM p.V2424G (c.7271T>G)
+   Classification: Variant of uncertain significance (VUS)
+   Allele Frequency: 18.2%
+   ATM encodes a serine/threonine kinase involved in DNA damage response.
+   The clinical significance of this specific variant is currently
+   uncertain. ATM loss-of-function has been associated with sensitivity
+   to PARP inhibitors and ATR inhibitors in some tumor contexts, but
+   insufficient evidence exists for this specific variant.
+
+5. CHEK2 p.I157T (c.470T>C)
+   Classification: Variant of uncertain significance (VUS)
+   Allele Frequency: 49.1% (likely germline)
+   CHEK2 I157T is a recurrent low-penetrance variant associated with
+   moderately increased cancer risk. Germline confirmation recommended.
+   Genetic counseling referral advised.
+
+----------------------------------------------------------------------
+BIOMARKERS
+----------------------------------------------------------------------
+
+6. Tumor Mutational Burden (TMB): 6.2 mutations/Mb — TMB-Low
+   TMB below the high threshold (typically ≥10 mut/Mb). Pembrolizumab
+   monotherapy based on TMB-H indication is not supported. However,
+   TMB should be considered in the context of PD-L1 expression.
+
+7. Microsatellite Status: MSI-Stable (MSS)
+   No evidence of mismatch repair deficiency. MMR-D/MSI-H directed
+   therapies (e.g., pembrolizumab, dostarlimab) are not indicated
+   based on this finding alone.
+
+8. PD-L1 Expression (TPS): 35% — PD-L1 Intermediate
+   Tumor proportion score of 35% indicates intermediate PD-L1
+   expression. Combination immunotherapy approaches may be considered
+   in the relapsed/refractory setting, particularly if resistance to
+   EGFR TKI develops.
+
+9. Homologous Recombination Deficiency (HRD): HRD Score 18 — Negative
+   HRD score below the threshold of 42. BRCA1/2 wild-type confirmed.
+   PARP inhibitor therapy not indicated based on current evidence.
+
+----------------------------------------------------------------------
+COPY NUMBER ALTERATIONS
+----------------------------------------------------------------------
+
+10. MET Amplification — High-level amplification (CN ~12)
+    MET amplification is a known primary and acquired resistance
+    mechanism to EGFR TKI therapy. If disease progression occurs on
+    EGFR TKI, MET-directed therapy (capmatinib, tepotinib) or
+    combination EGFR + MET inhibition strategies should be evaluated.
+    ctDNA monitoring for MET amplification at progression is recommended.
+
+11. CDKN2A Homozygous Deletion
+    Loss of CDKN2A (p16/INK4A) results in uncontrolled CDK4/6-mediated
+    cell cycle progression. No direct targeted therapy, but prognostically
+    unfavorable.
+
+----------------------------------------------------------------------
+GENE FUSIONS / REARRANGEMENTS
+----------------------------------------------------------------------
+
+ALK, ROS1, RET, NTRK1, NTRK2, NTRK3 — No fusions detected.
+BRAF — No V600E or other activating mutations detected.
+KRAS — Wild-type. No G12C, G12D, G12V, or other mutations.
+HER2 — No amplification or activating mutation detected.
+
+----------------------------------------------------------------------
+THERAPEUTIC IMPLICATIONS SUMMARY
+----------------------------------------------------------------------
+
+TIER 1 — FDA-APPROVED THERAPIES WITH STRONG EVIDENCE:
+  • Osimertinib (Tagrisso) — EGFR exon 19 deletion [APPROVED, 1L]
+  • Erlotinib / Gefitinib / Afatinib — EGFR sensitizing mutation [APPROVED]
+
+TIER 2 — INVESTIGATIONAL / RESISTANCE MONITORING:
+  • MET inhibitors (capmatinib, tepotinib) — if MET amp drives resistance
+  • PI3K/AKT inhibitors — PTEN loss context
+  • Immune checkpoint inhibitors — PD-L1 35%, TMB-Low (lower priority)
+
+GERMLINE REFERRAL RECOMMENDED:
+  • CHEK2 I157T (likely germline) — genetic counseling advised
+
+----------------------------------------------------------------------
+METHODOLOGY
+----------------------------------------------------------------------
+DNA and RNA were extracted from FFPE tumor tissue. Hybrid-capture based
+next-generation sequencing was performed on a 324-gene panel with mean
+coverage depth of 650x. Variants with VAF ≥5% and coverage ≥100x were
+reported. Tumor mutational burden calculated from 1.1 Mb of sequenced
+coding genome. MSI assessed at 114 loci. HRD score derived from
+genome-wide LOH, telomeric allelic imbalance, and large-scale
+state transitions.
+
+This report is intended for use by qualified healthcare professionals
+and should be interpreted in the full clinical context. This is not
+a standalone diagnostic report.
+
+----------------------------------------------------------------------
+END OF REPORT
+----------------------------------------------------------------------

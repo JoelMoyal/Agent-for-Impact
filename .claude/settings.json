@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install)",
+      "Bash(npm install --prefix .)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npx tsc --noEmit)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(npx next build)",
+      "Bash(lsof -ti :3000)",
+      "Bash(xargs kill -9)",
+      "Bash(npm install @swc/helpers)",
+      "Read(//private/tmp/**)",
+      "Bash(git checkout -b joel)",
+      "Bash(git add -A)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
