@@ -259,16 +259,19 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-[55%_45%]">
+      <div className="flex-1 overflow-hidden flex flex-row min-w-0">
         {doc && (
-          <DocumentViewer
-            text={doc.text}
-            filename={doc.filename}
-            annotations={doc.annotations}
-            activeAnnotationId={activeAnnotationId}
-            onAnnotationClick={handleAnnotationClick}
-          />
+          <div className="w-[55%] min-w-0 flex-shrink-0 overflow-hidden">
+            <DocumentViewer
+              text={doc.text}
+              filename={doc.filename}
+              annotations={doc.annotations}
+              activeAnnotationId={activeAnnotationId}
+              onAnnotationClick={handleAnnotationClick}
+            />
+          </div>
         )}
+        <div className="flex-1 min-w-0 overflow-hidden border-l border-gray-800">
         <ChatPanel
           messages={messages}
           isStreaming={isStreaming}
@@ -277,6 +280,7 @@ export default function Home() {
           onMutationClick={handleMutationClickInChat}
           onReset={handleReset}
         />
+        </div>
       </div>
     </div>
   );

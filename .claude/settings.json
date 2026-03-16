@@ -14,7 +14,9 @@
       "Read(//private/tmp/**)",
       "Bash(git checkout -b joel)",
       "Bash(git add -A)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push -u origin joel)",
+      "Bash(git push origin joel)"
     ]
   }
 }

@@ -33,9 +33,16 @@ export default function DocumentViewer({
     const el = spanRefs.current[activeAnnotationId];
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Pause the ambient breathe, run cross-link pulse
+      el.style.animationPlayState = "paused";
       el.classList.remove("animate-pulse-highlight");
-      void el.offsetWidth; // force reflow
+      void el.offsetWidth;
       el.classList.add("animate-pulse-highlight");
+      const timer = setTimeout(() => {
+        el.classList.remove("animate-pulse-highlight");
+        el.style.animationPlayState = "running";
+      }, 3000);
+      return () => clearTimeout(timer);
     }
   }, [activeAnnotationId]);
 
@@ -59,7 +66,7 @@ export default function DocumentViewer({
         <span
           key={ann.id}
           ref={(el) => { spanRefs.current[ann.id] = el; }}
-          className={`rounded px-0.5 ${CLS_STYLES[ann.cls]}`}
+          className={`rounded px-0.5 annotation-${ann.cls} ${CLS_STYLES[ann.cls]}`}
           title={`${CLS_LABELS[ann.cls]}: ${ann.text}`}
           onClick={() => onAnnotationClick(ann)}
         >

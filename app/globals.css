@@ -8,12 +8,36 @@
   }
 }
 
-/* Pulse animation for document highlights when referenced in chat */
+/* Cross-link pulse: triggered when chat references a mutation */
 @keyframes pulse-highlight {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+  0%   { box-shadow: 0 0 0 0px rgba(239,68,68,0.6); opacity: 1; }
+  40%  { box-shadow: 0 0 0 6px rgba(239,68,68,0); opacity: 0.5; }
+  100% { box-shadow: 0 0 0 0px rgba(239,68,68,0); opacity: 1; }
 }
 
 .animate-pulse-highlight {
-  animation: pulse-highlight 0.5s ease-in-out 4;
+  animation: pulse-highlight 0.7s ease-out 4;
+}
+
+/* Ambient live shimmer on all annotation spans */
+@keyframes annotation-breathe {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.75; }
+}
+
+.annotation-pathogenic {
+  animation: annotation-breathe 3s ease-in-out infinite;
+  animation-delay: 0s;
+}
+.annotation-vus {
+  animation: annotation-breathe 3.5s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+.annotation-benign {
+  animation: annotation-breathe 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+.annotation-biomarker {
+  animation: annotation-breathe 2.8s ease-in-out infinite;
+  animation-delay: 0.2s;
 }
