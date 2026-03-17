@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 interface Props {
   onUpload: (file: File) => void;
@@ -9,7 +9,6 @@ interface Props {
 
 export default function UploadZone({ onUpload, isLoading }: Props) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((file: File) => {
     if (isLoading) return;
@@ -43,22 +42,14 @@ export default function UploadZone({ onUpload, isLoading }: Props) {
         <h1 className="text-4xl font-bold text-white mb-3">Genomic Cancer Analysis</h1>
         <p className="text-gray-400 text-lg max-w-xl">
           Upload a genomic report or cancer panel result. The AI agent will extract mutations,
-          classify biomarkers, and explain findings grounded in your document.
+          classify biomarkers, and explain findings grounded in published evidence.
         </p>
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".pdf,.txt,.md"
-        className="hidden"
-        onChange={handleInputChange}
-        disabled={isLoading}
-      />
-
-      <div
-        onClick={() => !isLoading && inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+      {/* Use <label> — works in all browsers without JS click() */}
+      <label
+        htmlFor="genomic-file-input"
+        onDragOver={(e) => { e.preventDefault(); if (!isLoading) setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
         className={`
@@ -73,11 +64,20 @@ export default function UploadZone({ onUpload, isLoading }: Props) {
           }
         `}
       >
+        <input
+          id="genomic-file-input"
+          type="file"
+          accept=".pdf,.txt,.md"
+          className="sr-only"
+          onChange={handleInputChange}
+          disabled={isLoading}
+        />
+
         {isLoading ? (
           <>
             <div className="w-12 h-12 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
             <p className="text-gray-300 text-lg font-medium">Analyzing document...</p>
-            <p className="text-gray-500 text-sm">Extracting mutations and querying PubMed...</p>
+            <p className="text-gray-500 text-sm">Extracting mutations · querying PubMed + ClinVar</p>
           </>
         ) : (
           <>
@@ -95,14 +95,14 @@ export default function UploadZone({ onUpload, isLoading }: Props) {
             <p className="text-gray-600 text-sm">PDF, TXT, or Markdown — up to 10MB</p>
           </>
         )}
-      </div>
+      </label>
 
       <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl">
         {[
           { label: "Pathogenic mutations", cls: "text-red-300", dot: "bg-red-400", examples: "BRCA1/2, TP53, EGFR" },
-          { label: "VUS / uncertain", cls: "text-yellow-300", dot: "bg-yellow-400", examples: "ATM, CHEK2, PALB2" },
-          { label: "Benign variants", cls: "text-green-300", dot: "bg-green-400", examples: "Likely benign calls" },
-          { label: "Biomarkers", cls: "text-blue-300", dot: "bg-blue-400", examples: "TMB, MSI, PD-L1, HRD" },
+          { label: "VUS / uncertain",       cls: "text-yellow-300", dot: "bg-yellow-400", examples: "ATM, CHEK2, PALB2" },
+          { label: "Benign variants",       cls: "text-green-300", dot: "bg-green-400", examples: "Likely benign calls" },
+          { label: "Biomarkers",            cls: "text-blue-300",  dot: "bg-blue-400",  examples: "TMB, MSI, PD-L1, HRD" },
         ].map(({ label, cls, dot, examples }) => (
           <div key={label} className="bg-gray-900 border border-gray-800 rounded-xl p-3">
             <div className={`w-2 h-2 rounded-full mb-2 ${dot}`} />

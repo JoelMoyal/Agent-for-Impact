@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import { buildSystemPrompt } from "@/lib/systemPrompt";
 import { searchPubMed, searchClinVar, GroundingSource } from "@/lib/grounding";
+import { Annotation } from "@/lib/annotate";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -14,167 +15,111 @@ const openai = new OpenAI({
   },
 });
 
-const TOOLS: OpenAI.Chat.ChatCompletionTool[] = [
-  {
-    type: "function",
-    function: {
-      name: "search_pubmed",
-      description:
-        "Search PubMed for peer-reviewed literature about a mutation, gene, biomarker, or cancer treatment. Use this to ground your answer in real published evidence.",
-      parameters: {
-        type: "object",
-        properties: {
-          query: {
-            type: "string",
-            description:
-              "Specific search query e.g. 'EGFR exon 19 deletion osimertinib NSCLC' or 'BRCA2 pathogenic breast cancer PARP inhibitor'",
-          },
-        },
-        required: ["query"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "search_clinvar",
-      description:
-        "Search ClinVar for clinical variant classifications and pathogenicity evidence for a specific gene or variant.",
-      parameters: {
-        type: "object",
-        properties: {
-          query: {
-            type: "string",
-            description:
-              "Gene and variant query e.g. 'EGFR pathogenic' or 'BRCA2 p.Tyr42Cys' or 'TP53 R175H'",
-          },
-        },
-        required: ["query"],
-      },
-    },
-  },
-];
+async function fetchGrounding(annotations: Annotation[]): Promise<GroundingSource[]> {
+  // Pick top unique pathogenic genes + biomarkers to search
+  const seen = new Set<string>();
+  const toSearch: { term: string; type: "pubmed" | "clinvar" }[] = [];
 
-async function executeTool(name: string, args: Record<string, string>): Promise<{ result: unknown; source: GroundingSource }> {
-  if (name === "search_pubmed") {
-    const results = await searchPubMed(args.query);
-    return {
-      result: results,
-      source: { tool: "pubmed", query: args.query, results },
-    };
+  for (const ann of annotations) {
+    const key = ann.text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (ann.cls === "pathogenic" || ann.cls === "vus") {
+      toSearch.push({ term: ann.text, type: "clinvar" });
+      toSearch.push({ term: `${ann.text} cancer treatment`, type: "pubmed" });
+    } else if (ann.cls === "biomarker") {
+      toSearch.push({ term: `${ann.text} cancer immunotherapy`, type: "pubmed" });
+    }
+    if (toSearch.length >= 6) break;
   }
-  if (name === "search_clinvar") {
-    const results = await searchClinVar(args.query);
-    return {
-      result: results,
-      source: { tool: "clinvar", query: args.query, results },
-    };
+
+  const results = await Promise.allSettled(
+    toSearch.map(async ({ term, type }) => {
+      if (type === "pubmed") {
+        const r = await searchPubMed(term);
+        return r.length > 0 ? { tool: "pubmed" as const, query: term, results: r } : null;
+      } else {
+        const r = await searchClinVar(term);
+        return r.length > 0 ? { tool: "clinvar" as const, query: term, results: r } : null;
+      }
+    })
+  );
+
+  const out: GroundingSource[] = [];
+  for (const r of results) {
+    if (r.status === "fulfilled" && r.value !== null) out.push(r.value);
   }
-  return { result: [], source: { tool: "pubmed", query: "", results: [] } };
+  return out;
+}
+
+function buildGroundingContext(sources: GroundingSource[]): string {
+  if (sources.length === 0) return "";
+  let ctx = "\n\nGROUNDING EVIDENCE FROM EXTERNAL DATABASES:\n";
+  for (const src of sources) {
+    ctx += `\n[${src.tool === "pubmed" ? "PubMed" : "ClinVar"} — "${src.query}"]\n`;
+    for (const r of src.results.slice(0, 3)) {
+      if (src.tool === "pubmed") {
+        const pm = r as import("@/lib/grounding").PubMedResult;
+        ctx += `  • ${pm.title} (${pm.source}, ${pm.pubdate}) — ${pm.url}\n`;
+      } else {
+        const cv = r as import("@/lib/grounding").ClinVarResult;
+        ctx += `  • ${cv.title} — ${cv.clinical_significance} — ${cv.url}\n`;
+      }
+    }
+  }
+  ctx += "\nCite these sources in your response where relevant.\n";
+  return ctx;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, documentText } = await req.json();
+    const body = await req.json();
+    const { messages, documentText, annotations = [] } = body;
 
     if (!documentText) {
       return new Response(JSON.stringify({ error: "No document text provided" }), { status: 400 });
     }
 
-    const systemPrompt = buildSystemPrompt(documentText);
-    const allSources: GroundingSource[] = [];
+    // Fetch live grounding in parallel with building the prompt
+    const sources = await fetchGrounding(annotations as Annotation[]);
+    const groundingCtx = buildGroundingContext(sources);
+    const systemPrompt = buildSystemPrompt(documentText) + groundingCtx;
 
-    // Agentic loop: let Nemotron call tools until it has enough grounding
-    const loopMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: "system", content: systemPrompt },
-      ...messages,
-    ];
+    // Strip any non-standard fields from messages before sending to API
+    const cleanMessages = (messages as Array<{ role: string; content: string }>).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
 
-    let iterations = 0;
-    const MAX_ITERATIONS = 4;
+    const stream = await openai.chat.completions.create({
+      model: "nvidia/llama-3.1-nemotron-70b-instruct",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...cleanMessages,
+      ] as OpenAI.Chat.ChatCompletionMessageParam[],
+      stream: true,
+      temperature: 0.2,
+      max_tokens: 1200,
+    });
 
-    while (iterations < MAX_ITERATIONS) {
-      iterations++;
-
-      const response = await openai.chat.completions.create({
-        model: "nvidia/llama-3.1-nemotron-70b-instruct",
-        messages: loopMessages,
-        tools: TOOLS,
-        tool_choice: iterations === 1 ? "auto" : "auto",
-        temperature: 0.2,
-        max_tokens: 1500,
-        stream: false,
-      });
-
-      const choice = response.choices[0];
-      const assistantMsg = choice.message;
-
-      loopMessages.push(assistantMsg);
-
-      // No tool calls — model is done reasoning, stream the final answer
-      if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-        break;
-      }
-
-      // Execute all tool calls in parallel
-      const toolResults = await Promise.all(
-        assistantMsg.tool_calls.map(async (tc) => {
-          const args = JSON.parse(tc.function.arguments) as Record<string, string>;
-          const { result, source } = await executeTool(tc.function.name, args);
-          if (source.results.length > 0) allSources.push(source);
-          return {
-            role: "tool" as const,
-            tool_call_id: tc.id,
-            content: JSON.stringify(result),
-          };
-        })
-      );
-
-      loopMessages.push(...toolResults);
-    }
-
-    // Get the final answer content (either from loop exit or last assistant message)
-    const lastAssistant = [...loopMessages].reverse().find((m) => m.role === "assistant");
-    const finalContent =
-      typeof lastAssistant?.content === "string" ? lastAssistant.content : "";
-
-    // Stream: first send sources JSON line, then the answer
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
-        // Send sources as first line (client parses this)
-        if (allSources.length > 0) {
-          const sourcesLine = `SOURCES:${JSON.stringify(allSources)}\n`;
-          controller.enqueue(encoder.encode(sourcesLine));
-        }
-
-        // If we have a final content from the non-streaming loop, stream it char by char
-        if (finalContent) {
-          // Stream in chunks to simulate streaming feel
-          const chunkSize = 8;
-          for (let i = 0; i < finalContent.length; i += chunkSize) {
-            controller.enqueue(encoder.encode(finalContent.slice(i, i + chunkSize)));
-            // Small delay for streaming effect
-            await new Promise((r) => setTimeout(r, 10));
+        try {
+          // First send sources as a JSON line
+          if (sources.length > 0) {
+            controller.enqueue(encoder.encode(`SOURCES:${JSON.stringify(sources)}\n`));
           }
+          // Then stream the model response
+          for await (const chunk of stream) {
+            const delta = chunk.choices[0]?.delta?.content ?? "";
+            if (delta) controller.enqueue(encoder.encode(delta));
+          }
+        } catch (e) {
+          console.error("Streaming error:", e);
+        } finally {
           controller.close();
-          return;
         }
-
-        // Fallback: stream a fresh response if no content yet
-        const stream = await openai.chat.completions.create({
-          model: "nvidia/llama-3.1-nemotron-70b-instruct",
-          messages: loopMessages,
-          temperature: 0.2,
-          max_tokens: 1200,
-          stream: true,
-        });
-
-        for await (const chunk of stream) {
-          const delta = chunk.choices[0]?.delta?.content ?? "";
-          if (delta) controller.enqueue(encoder.encode(delta));
-        }
-        controller.close();
       },
     });
 
@@ -187,6 +132,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Chat error:", err);
-    return new Response(JSON.stringify({ error: "Failed to generate response" }), { status: 500 });
+    return new Response(
+      JSON.stringify({ error: String(err) }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
