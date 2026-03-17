@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useRef, useState, useCallback } from "react";
 
 interface Props {
   onUpload: (file: File) => void;
@@ -10,30 +9,28 @@ interface Props {
 
 export default function UploadZone({ onUpload, isLoading }: Props) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const onDrop = useCallback(
-    (accepted: File[]) => {
-      if (accepted[0]) onUpload(accepted[0]);
-    },
-    [onUpload]
-  );
+  const handleFile = useCallback((file: File) => {
+    if (isLoading) return;
+    onUpload(file);
+  }, [onUpload, isLoading]);
 
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-    onDragEnter: () => setIsDragOver(true),
-    onDragLeave: () => setIsDragOver(false),
-    accept: {
-      "application/pdf": [".pdf"],
-      "text/plain": [".txt"],
-      "text/markdown": [".md"],
-    },
-    maxFiles: 1,
-    disabled: isLoading,
-  });
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }, [handleFile]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+    e.target.value = "";
+  }, [handleFile]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 p-8">
-      {/* Header */}
       <div className="mb-12 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -50,27 +47,37 @@ export default function UploadZone({ onUpload, isLoading }: Props) {
         </p>
       </div>
 
-      {/* Drop zone */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.txt,.md"
+        className="hidden"
+        onChange={handleInputChange}
+        disabled={isLoading}
+      />
+
       <div
-        {...getRootProps()}
+        onClick={() => !isLoading && inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDrop}
         className={`
           relative w-full max-w-2xl border-2 border-dashed rounded-2xl p-16
-          flex flex-col items-center justify-center gap-4 cursor-pointer
-          transition-all duration-200
-          ${isDragOver
-            ? "border-green-400 bg-green-500/10 scale-[1.02]"
-            : "border-gray-700 bg-gray-900/60 hover:border-gray-500 hover:bg-gray-900"
+          flex flex-col items-center justify-center gap-4
+          transition-all duration-200 select-none
+          ${isLoading
+            ? "opacity-60 cursor-not-allowed border-gray-700 bg-gray-900/60"
+            : isDragOver
+              ? "border-green-400 bg-green-500/10 scale-[1.02] cursor-copy"
+              : "border-gray-700 bg-gray-900/60 hover:border-gray-500 hover:bg-gray-900 cursor-pointer"
           }
-          ${isLoading ? "opacity-60 cursor-not-allowed" : ""}
         `}
       >
-        <input {...getInputProps()} />
-
         {isLoading ? (
           <>
             <div className="w-12 h-12 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
             <p className="text-gray-300 text-lg font-medium">Analyzing document...</p>
-            <p className="text-gray-500 text-sm">Extracting text and detecting mutations</p>
+            <p className="text-gray-500 text-sm">Extracting mutations and querying PubMed...</p>
           </>
         ) : (
           <>
@@ -90,17 +97,16 @@ export default function UploadZone({ onUpload, isLoading }: Props) {
         )}
       </div>
 
-      {/* What it detects */}
       <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl">
         {[
-          { label: "Pathogenic mutations", color: "red", examples: "BRCA1/2, TP53, EGFR" },
-          { label: "VUS / uncertain", color: "yellow", examples: "ATM, CHEK2, PALB2" },
-          { label: "Benign variants", color: "green", examples: "Likely benign calls" },
-          { label: "Biomarkers", color: "blue", examples: "TMB, MSI, PD-L1, HRD" },
-        ].map(({ label, color, examples }) => (
+          { label: "Pathogenic mutations", cls: "text-red-300", dot: "bg-red-400", examples: "BRCA1/2, TP53, EGFR" },
+          { label: "VUS / uncertain", cls: "text-yellow-300", dot: "bg-yellow-400", examples: "ATM, CHEK2, PALB2" },
+          { label: "Benign variants", cls: "text-green-300", dot: "bg-green-400", examples: "Likely benign calls" },
+          { label: "Biomarkers", cls: "text-blue-300", dot: "bg-blue-400", examples: "TMB, MSI, PD-L1, HRD" },
+        ].map(({ label, cls, dot, examples }) => (
           <div key={label} className="bg-gray-900 border border-gray-800 rounded-xl p-3">
-            <div className={`w-2 h-2 rounded-full mb-2 bg-${color}-400`} />
-            <p className={`text-${color}-300 text-xs font-semibold mb-1`}>{label}</p>
+            <div className={`w-2 h-2 rounded-full mb-2 ${dot}`} />
+            <p className={`text-xs font-semibold mb-1 ${cls}`}>{label}</p>
             <p className="text-gray-500 text-xs">{examples}</p>
           </div>
         ))}
