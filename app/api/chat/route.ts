@@ -6,14 +6,16 @@ import { buildSystemPrompt } from "@/lib/systemPrompt";
 import { searchPubMed, searchClinVar, GroundingSource } from "@/lib/grounding";
 import { Annotation } from "@/lib/annotate";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": "https://genomic-cancer-analysis.vercel.app",
-    "X-Title": "Genomic Cancer Analysis",
-  },
-});
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: "https://openrouter.ai/api/v1",
+    defaultHeaders: {
+      "HTTP-Referer": "https://genomic-cancer-analysis.vercel.app",
+      "X-Title": "Genomic Cancer Analysis",
+    },
+  });
+}
 
 async function fetchGrounding(annotations: Annotation[]): Promise<GroundingSource[]> {
   // Pick top unique pathogenic genes + biomarkers to search
@@ -91,6 +93,7 @@ export async function POST(req: NextRequest) {
       content: m.content,
     }));
 
+    const openai = getOpenAIClient();
     const stream = await openai.chat.completions.create({
       model: "nvidia/llama-3.1-nemotron-70b-instruct",
       messages: [
