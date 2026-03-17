@@ -29,7 +29,7 @@ export default function UploadZone({ onUpload, isLoading }: Props) {
   }, [handleFile]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 p-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-transparent p-8">
       <div className="mb-12 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">

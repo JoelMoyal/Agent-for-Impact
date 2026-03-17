@@ -7,6 +7,7 @@ import ChatPanel from "@/components/ChatPanel";
 import { Message } from "@/components/MessageBubble";
 import { Annotation } from "@/lib/annotate";
 import { GroundingSource } from "@/lib/grounding";
+import { ShaderBackground } from "@/components/ui/animated-shader-hero";
 
 type AppState = "idle" | "uploading" | "analyzing";
 
@@ -199,14 +200,14 @@ export default function Home() {
 
   if (state === "idle" || state === "uploading") {
     return (
-      <div className="relative">
+      <ShaderBackground>
         <UploadZone onUpload={handleUpload} isLoading={state === "uploading"} />
         {error && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-900/90 border border-red-700 text-red-200 px-5 py-3 rounded-xl text-sm shadow-xl max-w-md text-center">
             {error}
           </div>
         )}
-      </div>
+      </ShaderBackground>
     );
   }
 
