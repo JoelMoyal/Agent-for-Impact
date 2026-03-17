@@ -1,8 +1,40 @@
-# Agent for Impact
+# Agent for Impact — Genomic Cancer Analysis Agent
 
-An AI-powered genomic cancer report analysis tool. Upload a patient's genomic profiling report, get instant intelligent annotations, and interactively explore findings grounded in live scientific literature.
+> **Built at the NVIDIA GTC Hackathon** — we had 2 hours to build something with the new NVIDIA products. This is what we shipped.
 
-Built with **NVIDIA Nemotron** (via OpenRouter), **PubMed**, and **ClinVar** — designed for oncologists, genetic counselors, and clinical researchers who need fast, evidence-backed interpretation of complex genomic data.
+An AI-powered clinical genomics assistant that enables oncologists and researchers to upload genomic reports and instantly receive grounded, evidence-based analysis of cancer mutations and biomarkers.
+
+---
+
+## How It Works
+
+A user uploads a genomic sequencing report (PDF or text). The app automatically detects and highlights cancer-linked mutations (BRCA1/2, TP53, EGFR, KRAS, BRAF, HER2, etc.), biomarkers (TMB, MSI, PD-L1, HRD), and variants of uncertain significance — color-coded inline within the document. The AI agent then analyzes the full report, retrieves live evidence from PubMed and ClinVar, and delivers a clinically grounded explanation with real citations. Users can ask follow-up questions in natural language; clicking a mutation name in the chat scrolls and highlights the exact passage in the document.
+
+---
+
+## Tools & Technologies
+
+### NVIDIA AI Ecosystem
+
+**NVIDIA Llama-3.1-Nemotron-70B-Instruct** — core reasoning model for genomic analysis, biomarker interpretation, and treatment implication synthesis. Nemotron's extended instruction-following capability is used to ground answers strictly in the uploaded document while integrating live external evidence.
+
+Accessed via OpenRouter (`nvidia/llama-3.1-nemotron-70b-instruct`)
+
+### Grounding & Evidence
+
+- **NCBI PubMed E-utilities API** — live retrieval of peer-reviewed literature for detected mutations
+- **NCBI ClinVar API** — live retrieval of clinical variant classifications and pathogenicity evidence
+
+### Frontend
+
+- Next.js 14 (App Router), React 18, TypeScript
+- Tailwind CSS with custom CSS animations for live mutation highlight breathe effects
+
+### Backend
+
+- Next.js API routes (Node.js runtime)
+- `pdf-parse` for PDF text extraction
+- Server-side annotation engine using curated regex patterns for 30+ cancer genes
 
 ---
 
